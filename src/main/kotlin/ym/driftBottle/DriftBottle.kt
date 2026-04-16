@@ -13,7 +13,6 @@ import ym.driftBottle.lang.LangService
 import ym.driftBottle.listener.ChatInputListener
 import ym.driftBottle.listener.MenuListener
 import ym.driftBottle.listener.PlayerLifecycleListener
-import ym.driftBottle.listener.SalvagePickupListener
 import ym.driftBottle.repository.BlacklistRepository
 import ym.driftBottle.repository.CurrencyLedgerRepository
 import ym.driftBottle.repository.DriftBottleRepository
@@ -117,7 +116,6 @@ class DriftBottle : JavaPlugin() {
             ChatInputListener(this, chatInputStateStore, chatProtectionService, guiService),
             this,
         )
-        server.pluginManager.registerEvents(SalvagePickupListener(bottleWaterEffectService), this)
 
         logger.info(lang.format("plugin.enabled-log", mapOf("economy_enabled" to economyService.isEnabled().toString())))
     }

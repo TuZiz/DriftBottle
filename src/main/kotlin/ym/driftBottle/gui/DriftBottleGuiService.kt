@@ -137,6 +137,10 @@ class DriftBottleGuiService(
                     player = player,
                     target = target,
                     bottleId = bottle.id,
+                    labelContext = BottleWaterEffectService.BottleVisualLabelContext(
+                        ownerAlias = bottle.ownerAlias,
+                        anonymousCode = driftBottleService.anonymousCodeOf(bottle.ownerUuid),
+                    ),
                     onReady = { pickupPlayer, _ ->
                         pickupPlayer.sendMessage(lang.get("bottle.salvage-pickup-ready"))
                     },
@@ -330,8 +334,16 @@ class DriftBottleGuiService(
                     }
                     val result = driftBottleService.createBottle(player, message)
                     player.sendMessage(result.message)
-                    if (result.success) {
-                        bottleWaterEffectService.playThrowEffect(player, target) {
+                    val bottle = result.payload
+                    if (result.success && bottle != null) {
+                        bottleWaterEffectService.playThrowEffect(
+                            player = player,
+                            target = target,
+                            labelContext = BottleWaterEffectService.BottleVisualLabelContext(
+                                ownerAlias = bottle.ownerAlias,
+                                anonymousCode = driftBottleService.anonymousCodeOf(bottle.ownerUuid),
+                            ),
+                        ) {
                             if (player.isOnline) {
                                 openMyBottlesMenu(player, 0)
                             }

@@ -1,77 +1,105 @@
-# 当前使用的语言文件名称，可选 zh_cn 或 en_us。
+# 当前使用的语言文件名称，可选 zh_cn 或 en_us
 language: zh_cn
 
-# 数据库配置节点，负责保存漂流瓶、回信、黑名单和经济流水。
+# 数据库存储配置
 database:
-  # 数据库类型，可选 SQLITE 或 MYSQL。
+  # 数据库类型，可选 SQLITE 或 MYSQL
   type: SQLITE
-  # SQLite 数据库文件名，文件会保存在插件目录下。
+  # SQLite 文件名，保存在插件目录下
   sqlite-file: driftbottle.db
-  # MySQL 连接配置，只有 type 设置为 MYSQL 时才会生效。
+  # MySQL 配置，仅当 type 为 MYSQL 时生效
   mysql:
-    # MySQL 主机地址。
+    # MySQL 主机地址
     host: 127.0.0.1
-    # MySQL 端口号。
+    # MySQL 端口
     port: 3306
-    # MySQL 数据库名称。
+    # MySQL 数据库名
     database: driftbottle
-    # MySQL 登录用户名。
+    # MySQL 用户名
     username: root
-    # MySQL 登录密码，留空时请保持一对单引号。
+    # MySQL 密码，留空时请保留一对单引号
     password: ''
-    # MySQL 连接附加参数，通常不需要改动。
+    # MySQL 附加参数，通常无需修改
     parameters: useSSL=false&characterEncoding=utf8&serverTimezone=UTC
 
-# 聊天输入限制配置，影响投放漂流瓶和发送回信。
+# 聊天输入保护配置
 chat:
-  # 同一玩家的聊天输入冷却时间，单位为毫秒。
+  # 同一玩家的输入冷却，单位毫秒
   message-cooldown-millis: 3000
-  # 单条漂流瓶留言或回信允许的最大字符数。
+  # 单条漂流瓶留言或回复的最大长度
   max-message-length: 120
-  # 违禁词列表，输入命中后会被系统拦截。
+  # 违禁词列表
   banned-words:
-    # 示例违禁词，可按服务器需要自行修改。
     - sb
-    # 示例违禁词，可按服务器需要自行修改。
     - nmsl
 
-# 漂流瓶核心玩法配置。
+# 漂流瓶核心玩法配置
 bottle:
-  # 投放漂流瓶时通过 Vault 经济扣除的金额。
-  throw-cost: 5.0
-  # 随机打捞成功后通过 Vault 经济发放的奖励金额。
-  salvage-reward: 3.0
-  # 投放漂流瓶的冷却时间，单位为秒。
-  throw-cooldown-seconds: 10
-  # 随机打捞的冷却时间，单位为秒。
-  salvage-cooldown-seconds: 5
-  # 每名玩家允许同时存在的未封存漂流瓶上限。
-  max-active-bottles-per-player: 5
-  # 单个漂流瓶会话允许的最大回信轮次。
-  max-thread-replies: 6
-  # 是否启用投放、打捞、回信时的音效提示。
-  sounds-enabled: true
-  # 投放漂流瓶时播放的 Bukkit 音效名称。
-  throw-sound: ITEM_BOTTLE_FILL
-  # 打捞成功时播放的 Bukkit 音效名称。
-  salvage-sound: ENTITY_EXPERIENCE_ORB_PICKUP
-  # 回信发送成功时播放的 Bukkit 音效名称。
-  reply-sound: BLOCK_NOTE_BLOCK_CHIME
-  # 玩家附近搜索可用水体的半径，单位为方块。
-  water-search-radius: 5
-  # 允许投放/打捞视觉效果的最小连续水深，4 代表必须超过 3 格深。
-  water-min-depth: 4
-  # 漂流瓶在起点悬停旋转的时长，单位为 tick；数值越大，起手动作越长。
-  visual-hover-ticks: 24
-  # 漂流瓶从起点飞到终点的动画时长，单位为 tick；数值越大，飞行动画越慢越完整。
-  visual-flight-ticks: 36
-  # 打捞瓶子飞到玩家身边后，最多等待玩家拾取多久，单位为 tick。
-  salvage-pickup-wait-ticks: 200
-  # 投放/打捞视觉效果使用的物品配置。
-  visual-item:
-    # 视觉漂流瓶使用的材质，通常保持 PLAYER_HEAD；也可以改成别的可穿戴物品材质。
-    material: PLAYER_HEAD
-    # 当材质为 PLAYER_HEAD 时，可填写玩家名来使用对应皮肤；留空则不使用玩家皮肤。
-    head-owner: ''
-    # 当材质为 PLAYER_HEAD 时，也可直接填写 Base64 头颅材质；优先级高于 head-owner；当前默认值为水瓶样式。
-    head-texture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0='
+  # 经济相关配置
+  economy:
+    # 投放漂流瓶时通过 Vault 扣除的金额
+    throw-cost: 5.0
+    # 随机打捞成功后通过 Vault 发放的奖励金额
+    salvage-reward: 3.0
+
+  # 玩法限制配置
+  limits:
+    # 投放漂流瓶冷却，单位秒
+    throw-cooldown-seconds: 10
+    # 随机打捞冷却，单位秒
+    salvage-cooldown-seconds: 5
+    # 每名玩家允许同时存在的未封存漂流瓶上限
+    max-active-bottles-per-player: 5
+    # 单个漂流瓶会话允许的最大回复轮次
+    max-thread-replies: 6
+
+  # 音效配置
+  sounds:
+    # 是否启用投放、打捞、回复音效
+    enabled: true
+    # 投放漂流瓶时播放的 Bukkit 音效
+    throw: ITEM_BOTTLE_FILL
+    # 打捞成功时播放的 Bukkit 音效
+    salvage: ENTITY_EXPERIENCE_ORB_PICKUP
+    # 回复成功时播放的 Bukkit 音效
+    reply: BLOCK_NOTE_BLOCK_CHIME
+
+  # 水域检测配置
+  water:
+    # 搜索可用水域的半径，单位方块
+    search-radius: 10
+    # 允许投放/打捞的最小连续水深，4 代表必须超过 3 格深
+    min-depth: 1
+
+  # 动画配置
+  animation:
+    # 漂流瓶在起点悬停旋转的时长，单位 tick
+    hover-ticks: 24
+    # 漂流瓶飞行到目标位置的时长，单位 tick
+    flight-ticks: 36
+
+  # 打捞后的等待拾取配置
+  pickup:
+    # 漂流瓶飞到玩家身边后，最多等待多久，单位 tick
+    wait-ticks: 200
+    # 玩家靠近假实体多少格以内，判定为拾取成功
+    radius: 1.0
+
+  # 视觉表现配置
+  visual:
+    # 漂流瓶主体材质配置
+    item:
+      # 视觉漂流瓶使用的材质，通常保持 PLAYER_HEAD
+      material: PLAYER_HEAD
+      # 当材质为 PLAYER_HEAD 时，可使用玩家名作为头颅皮肤
+      head-owner: ''
+      # 当材质为 PLAYER_HEAD 时，可直接填写 Base64 头颅材质，优先级高于 head-owner
+      head-texture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0='
+    # 全息字配置
+    hologram:
+      # 是否显示漂流瓶上方的匿名编号全息字
+      enabled: true
+      # 全息字文本，可用占位符 %owner_alias%、%alias%、%anonymous_code%
+      text: "&#FFE066匿名用户编号: &f%anonymous_code%"
+      # 全息字相对漂流瓶头颅的高度偏移
+      y-offset: 0.65

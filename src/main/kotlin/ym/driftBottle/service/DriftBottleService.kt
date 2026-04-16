@@ -265,8 +265,12 @@ class DriftBottleService(
         val prefixes = arrayOf("海星", "月潮", "贝壳", "白帆", "潮汐", "海鸥")
         val hash = abs(playerUuid.hashCode())
         val prefix = prefixes[hash % prefixes.size]
-        val suffix = playerUuid.toString().replace("-", "").takeLast(4).uppercase()
+        val suffix = anonymousCodeOf(playerUuid)
         return "匿名$prefix$suffix"
+    }
+
+    fun anonymousCodeOf(playerUuid: UUID): String {
+        return playerUuid.toString().replace("-", "").takeLast(4).uppercase()
     }
 
     fun canReply(playerUuid: UUID, thread: BottleThreadView): Boolean {

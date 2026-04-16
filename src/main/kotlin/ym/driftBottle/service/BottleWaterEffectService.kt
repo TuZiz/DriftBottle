@@ -6,38 +6,37 @@ import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.wrappers.EnumWrappers
 import com.comphenix.protocol.wrappers.Pair
 import com.comphenix.protocol.wrappers.Vector3F
+import com.comphenix.protocol.wrappers.WrappedChatComponent
 import com.comphenix.protocol.wrappers.WrappedDataWatcher
-import org.bukkit.Location
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.World
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.Item
 import org.bukkit.entity.Player
-import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
-import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitTask
 import org.bukkit.util.Vector
 import ym.driftBottle.config.BottleConfig
 import ym.driftBottle.util.HeadTextureSupport
-import kotlin.math.PI
-import kotlin.math.sin
+import ym.driftBottle.util.TextColorizer
+import java.util.Optional
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.PI
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 class BottleWaterEffectService(
     private val plugin: JavaPlugin,
     private val bottleConfigProvider: () -> BottleConfig,
 ) {
 
-    private val pickupOwnerKey = NamespacedKey(plugin, "salvage_pickup_owner")
-    private val pickupBottleIdKey = NamespacedKey(plugin, "salvage_pickup_bottle_id")
     private val pendingSalvagePickups = ConcurrentHashMap<UUID, SalvagePickupSession>()
     private val visualEntityIdSequence = AtomicInteger(-1)
 
@@ -68,27 +67,33 @@ class BottleWaterEffectService(
         })
     }
 
-    fun playThrowEffect(player: Player, target: WaterTarget, onComplete: () -> Unit) {
+    fun playThrowEffect(
+        player: Player,
+        target: WaterTarget,
+        labelContext: BottleVisualLabelContext,
+        onComplete: () -> Unit,
+    ) {
         if (!player.isOnline) {
             onComplete()
             return
         }
-        val start = player.eyeLocation.clone().add(player.location.direction.normalize().multiply(0.8)).add(0.0, -0.35, 0.0)
+        val start = player.eyeLocation.clone()
+            .add(player.location.direction.normalize().multiply(0.8))
+            .add(0.0, -0.35, 0.0)
         val end = target.surfaceLocation(player.world).add(0.0, 0.1, 0.0)
         playEffect(
             player = player,
             start = start,
             end = end,
+            labelContext = labelContext,
             downward = true,
             trailParticle = Particle.WATER_WAKE,
             finishParticle = Particle.WATER_SPLASH,
             finishSound = Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED,
-            onComplete = onComplete,
-        )
-    }
-
-    fun playSalvageEffect(player: Player, target: WaterTarget, onComplete: () -> Unit) {
-        playSalvageEffect(player, target, salvageLandingLocation(player), onComplete)
+        ) { visual ->
+            destroyVisual(player, visual)
+            onComplete()
+        }
     }
 
     fun hasPendingSalvagePickup(playerUuid: UUID): Boolean {
@@ -97,8 +102,11 @@ class BottleWaterEffectService(
 
     fun clearPendingSalvagePickup(playerUuid: UUID) {
         val session = pendingSalvagePickups.remove(playerUuid) ?: return
+        session.hoverTask?.cancel()
         session.timeoutTask?.cancel()
-        session.itemUuid?.let(::removePickupItem)
+        plugin.server.getPlayer(playerUuid)?.takeIf(Player::isOnline)?.let { viewer ->
+            session.visual?.let { destroyVisual(viewer, it) }
+        }
     }
 
     fun clearAllPendingSalvagePickups() {
@@ -109,13 +117,15 @@ class BottleWaterEffectService(
         player: Player,
         target: WaterTarget,
         bottleId: Long,
+        labelContext: BottleVisualLabelContext,
         onReady: (Player, Long) -> Unit,
         onPicked: (Player, Long) -> Unit,
         onExpired: (Player, Long) -> Unit,
     ): Boolean {
         val session = SalvagePickupSession(
             bottleId = bottleId,
-            itemUuid = null,
+            visual = null,
+            hoverTask = null,
             timeoutTask = null,
             onPicked = onPicked,
             onExpired = onExpired,
@@ -124,65 +134,31 @@ class BottleWaterEffectService(
             return false
         }
         val landing = salvageLandingLocation(player)
-        playSalvageEffect(player, target, landing) {
+        playSalvageEffect(player, target, landing, labelContext) { visual ->
             val current = pendingSalvagePickups[player.uniqueId]
             if (current == null || current.bottleId != bottleId || !player.isOnline) {
-                clearPendingSalvagePickup(player.uniqueId)
+                destroyVisual(player, visual)
                 return@playSalvageEffect
             }
-            val pickupItem = spawnPickupItem(player, bottleId, landing) ?: run {
-                pendingSalvagePickups.remove(player.uniqueId)
-                current.onExpired(player, bottleId)
-                return@playSalvageEffect
-            }
-            val timeoutTask = plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                val timedOut = pendingSalvagePickups[player.uniqueId]
-                if (timedOut == null || timedOut.bottleId != bottleId || timedOut.itemUuid != pickupItem.uniqueId) {
-                    return@Runnable
-                }
-                pendingSalvagePickups.remove(player.uniqueId)
-                if (pickupItem.isValid) {
-                    pickupItem.remove()
-                }
-                timedOut.onExpired(player, bottleId)
-            }, bottleConfigProvider().salvagePickupWaitTicks)
+            val tasks = beginPendingPickupHover(player, bottleId, landing, visual)
             pendingSalvagePickups[player.uniqueId] = current.copy(
-                itemUuid = pickupItem.uniqueId,
-                timeoutTask = timeoutTask,
+                visual = visual,
+                hoverTask = tasks.hoverTask,
+                timeoutTask = tasks.timeoutTask,
             )
             onReady(player, bottleId)
         }
         return true
     }
 
-    fun handleItemPickup(event: EntityPickupItemEvent) {
-        val player = event.entity as? Player ?: return
-        val ownerUuid = event.item.persistentDataContainer.get(pickupOwnerKey, PersistentDataType.STRING) ?: return
-        val bottleId = event.item.persistentDataContainer.get(pickupBottleIdKey, PersistentDataType.LONG) ?: return
-        event.isCancelled = true
-        if (ownerUuid != player.uniqueId.toString()) {
-            return
-        }
-        val session = pendingSalvagePickups[player.uniqueId] ?: run {
-            if (event.item.isValid) {
-                event.item.remove()
-            }
-            return
-        }
-        if (session.bottleId != bottleId || (session.itemUuid != null && session.itemUuid != event.item.uniqueId)) {
-            return
-        }
-        session.timeoutTask?.cancel()
-        pendingSalvagePickups.remove(player.uniqueId)
-        if (event.item.isValid) {
-            event.item.remove()
-        }
-        session.onPicked(player, bottleId)
-    }
-
-    private fun playSalvageEffect(player: Player, target: WaterTarget, landing: Location, onComplete: () -> Unit) {
+    private fun playSalvageEffect(
+        player: Player,
+        target: WaterTarget,
+        landing: Location,
+        labelContext: BottleVisualLabelContext,
+        onComplete: (PacketVisual) -> Unit,
+    ) {
         if (!player.isOnline) {
-            onComplete()
             return
         }
         val start = target.surfaceLocation(player.world).add(0.0, 0.15, 0.0)
@@ -190,6 +166,7 @@ class BottleWaterEffectService(
             player = player,
             start = start,
             end = landing,
+            labelContext = labelContext,
             downward = false,
             trailParticle = Particle.BUBBLE_COLUMN_UP,
             finishParticle = Particle.CLOUD,
@@ -202,29 +179,29 @@ class BottleWaterEffectService(
         player: Player,
         start: Location,
         end: Location,
+        labelContext: BottleVisualLabelContext,
         downward: Boolean,
         trailParticle: Particle,
         finishParticle: Particle,
         finishSound: Sound,
-        onComplete: () -> Unit,
+        onComplete: (PacketVisual) -> Unit,
     ) {
         val config = bottleConfigProvider()
-        val visualEntity = spawnVisualHead(start, player)
+        val visual = spawnVisual(start, player, labelContext)
         val hoverTicks = config.visualHoverTicks
         val flightTicks = config.visualFlightTicks
         val totalTicks = hoverTicks + flightTicks
-        val taskHolder = arrayOfNulls<org.bukkit.scheduler.BukkitTask>(1)
+        val taskHolder = arrayOfNulls<BukkitTask>(1)
         var tick = 0L
         taskHolder[0] = plugin.server.scheduler.runTaskTimer(plugin, Runnable {
             if (!player.isOnline) {
                 taskHolder[0]?.cancel()
-                destroyVisualHead(player, visualEntity)
-                onComplete()
+                destroyVisual(player, visual)
                 return@Runnable
             }
             if (tick < hoverTicks) {
-                val hoverLocation = start.clone().add(0.0, sin((tick / 4.0)) * 0.03, 0.0)
-                updateVisualHead(player, visualEntity, hoverLocation, tick.toDouble(), downward, 0.0)
+                val hoverLocation = start.clone().add(0.0, sin(tick / 4.0) * 0.03, 0.0)
+                updateFlightVisual(player, visual, hoverLocation, tick.toDouble(), downward, 0.0)
                 player.spawnParticle(Particle.ENCHANTMENT_TABLE, hoverLocation, 1, 0.05, 0.05, 0.05, 0.0)
                 tick++
                 return@Runnable
@@ -232,55 +209,157 @@ class BottleWaterEffectService(
 
             val flightProgress = ((tick - hoverTicks).toDouble() / flightTicks.toDouble()).coerceIn(0.0, 1.0)
             val current = interpolateArc(start, end, flightProgress, downward)
-            updateVisualHead(player, visualEntity, current, tick.toDouble(), downward, flightProgress)
+            updateFlightVisual(player, visual, current, tick.toDouble(), downward, flightProgress)
             player.spawnParticle(trailParticle, current, 3, 0.08, 0.08, 0.08, 0.0)
 
             if (tick >= totalTicks) {
                 taskHolder[0]?.cancel()
                 player.spawnParticle(finishParticle, current, 8, 0.18, 0.18, 0.18, 0.01)
                 player.playSound(player.location, finishSound, 0.8f, 1.1f)
-                destroyVisualHead(player, visualEntity)
-                onComplete()
+                onComplete(visual)
                 return@Runnable
             }
             tick++
         }, 0L, 1L)
     }
 
-    private fun spawnVisualHead(location: Location, viewer: Player): PacketVisualHead {
+    private fun beginPendingPickupHover(
+        player: Player,
+        bottleId: Long,
+        baseLocation: Location,
+        visual: PacketVisual,
+    ): PendingPickupTasks {
+        val taskHolder = arrayOfNulls<BukkitTask>(1)
+        var tick = 0L
+        taskHolder[0] = plugin.server.scheduler.runTaskTimer(plugin, Runnable {
+            val current = pendingSalvagePickups[player.uniqueId]
+            if (current == null || current.bottleId != bottleId) {
+                taskHolder[0]?.cancel()
+                return@Runnable
+            }
+            if (!player.isOnline || player.world.uid != requireNotNull(baseLocation.world).uid) {
+                taskHolder[0]?.cancel()
+                expirePendingPickup(player.uniqueId)
+                return@Runnable
+            }
+            val hoverLocation = baseLocation.clone().add(0.0, sin(tick / 5.0) * 0.05, 0.0)
+            updateIdleVisual(player, visual, hoverLocation, tick.toDouble())
+            if (player.location.distanceSquared(baseLocation) <= bottleConfigProvider().pickupRadius * bottleConfigProvider().pickupRadius) {
+                taskHolder[0]?.cancel()
+                completePendingPickup(player.uniqueId)
+                return@Runnable
+            }
+            tick++
+        }, 0L, 1L)
+
+        val timeoutTask = plugin.server.scheduler.runTaskLater(plugin, Runnable {
+            expirePendingPickup(player.uniqueId)
+        }, bottleConfigProvider().salvagePickupWaitTicks)
+
+        return PendingPickupTasks(
+            hoverTask = taskHolder[0],
+            timeoutTask = timeoutTask,
+        )
+    }
+
+    private fun completePendingPickup(playerUuid: UUID) {
+        val session = pendingSalvagePickups.remove(playerUuid) ?: return
+        session.hoverTask?.cancel()
+        session.timeoutTask?.cancel()
+        val player = plugin.server.getPlayer(playerUuid) ?: return
+        session.visual?.let { destroyVisual(player, it) }
+        session.onPicked(player, session.bottleId)
+    }
+
+    private fun expirePendingPickup(playerUuid: UUID) {
+        val session = pendingSalvagePickups.remove(playerUuid) ?: return
+        session.hoverTask?.cancel()
+        session.timeoutTask?.cancel()
+        val player = plugin.server.getPlayer(playerUuid) ?: return
+        session.visual?.let { destroyVisual(player, it) }
+        session.onExpired(player, session.bottleId)
+    }
+
+    private fun spawnVisual(location: Location, viewer: Player, labelContext: BottleVisualLabelContext): PacketVisual {
         val visualItem = buildVisualItem(bottleConfigProvider())
-        val visualHead = PacketVisualHead(
+        val head = PacketVisualHead(
             entityId = visualEntityIdSequence.getAndDecrement(),
             uuid = UUID.randomUUID(),
             visualItem = visualItem,
+            currentLocation = location.clone(),
         )
-        sendPacket(viewer, createSpawnPacket(visualHead, location, 0.0))
-        sendPacket(viewer, createEquipmentPacket(visualHead.entityId, visualHead.visualItem))
-        sendPacket(viewer, createStaticMetadataPacket(visualHead.entityId))
-        sendPacket(viewer, createPoseMetadataPacket(visualHead.entityId, 0.0, 0.0))
-        return visualHead
-    }
+        sendPacket(viewer, createSpawnPacket(head.entityId, head.uuid, location, 0.0))
+        sendPacket(viewer, createEquipmentPacket(head.entityId, head.visualItem))
+        sendPacket(viewer, createHeadStaticMetadataPacket(head.entityId))
+        sendPacket(viewer, createHeadPoseMetadataPacket(head.entityId, 0.0, 0.0))
 
-    private fun spawnPickupItem(player: Player, bottleId: Long, location: Location): Item? {
-        if (!player.isOnline) {
-            return null
+        val hologramText = resolveHologramText(labelContext)
+        val hologram = if (hologramText != null) {
+            PacketVisualHologram(
+                entityId = visualEntityIdSequence.getAndDecrement(),
+                uuid = UUID.randomUUID(),
+                currentLocation = hologramLocation(location),
+                text = hologramText,
+            ).also { hologramEntity ->
+                sendPacket(viewer, createSpawnPacket(hologramEntity.entityId, hologramEntity.uuid, hologramEntity.currentLocation, 0.0))
+                sendPacket(viewer, createHologramMetadataPacket(hologramEntity.entityId, hologramEntity.text))
+            }
+        } else {
+            null
         }
-        val item = player.world.dropItem(location, buildVisualItem(bottleConfigProvider()))
-        item.setOwner(player.uniqueId)
-        item.pickupDelay = 10
-        item.setGravity(false)
-        item.velocity = Vector(0.0, 0.0, 0.0)
-        item.persistentDataContainer.set(pickupOwnerKey, PersistentDataType.STRING, player.uniqueId.toString())
-        item.persistentDataContainer.set(pickupBottleIdKey, PersistentDataType.LONG, bottleId)
-        return item
+        return PacketVisual(head = head, hologram = hologram)
     }
 
-    private fun removePickupItem(itemUuid: UUID) {
-        plugin.server.worlds.asSequence()
-            .flatMap { it.entities.asSequence() }
-            .filterIsInstance<Item>()
-            .firstOrNull { it.uniqueId == itemUuid }
-            ?.remove()
+    private fun updateFlightVisual(
+        viewer: Player,
+        visual: PacketVisual,
+        headLocation: Location,
+        tick: Double,
+        downward: Boolean,
+        progress: Double,
+    ) {
+        val yawDegrees = (tick * 18.0) % 360.0
+        val pitchRadians = if (downward) progress * (PI / 2.0) else -(1.0 - progress) * (PI / 2.5)
+        createRelativeMoveLookPacket(visual.head, headLocation, yawDegrees)?.let { sendPacket(viewer, it) }
+        sendPacket(
+            viewer,
+            createHeadPoseMetadataPacket(
+                visual.head.entityId,
+                Math.toDegrees(pitchRadians),
+                yawDegrees,
+            ),
+        )
+        visual.head.currentLocation = headLocation.clone()
+        visual.hologram?.let { hologram ->
+            val nextLocation = hologramLocation(headLocation)
+            createRelativeMovePacket(hologram, nextLocation)?.let { sendPacket(viewer, it) }
+            hologram.currentLocation = nextLocation
+        }
+    }
+
+    private fun updateIdleVisual(
+        viewer: Player,
+        visual: PacketVisual,
+        headLocation: Location,
+        tick: Double,
+    ) {
+        val yawDegrees = (tick * 14.0) % 360.0
+        createRelativeMoveLookPacket(visual.head, headLocation, yawDegrees)?.let { sendPacket(viewer, it) }
+        sendPacket(viewer, createHeadPoseMetadataPacket(visual.head.entityId, 0.0, yawDegrees))
+        visual.head.currentLocation = headLocation.clone()
+        visual.hologram?.let { hologram ->
+            val nextLocation = hologramLocation(headLocation)
+            createRelativeMovePacket(hologram, nextLocation)?.let { sendPacket(viewer, it) }
+            hologram.currentLocation = nextLocation
+        }
+    }
+
+    private fun destroyVisual(viewer: Player, visual: PacketVisual) {
+        val ids = buildList {
+            add(visual.head.entityId)
+            visual.hologram?.let { add(it.entityId) }
+        }
+        sendPacket(viewer, createDestroyPacket(ids))
     }
 
     private fun buildVisualItem(config: BottleConfig): ItemStack {
@@ -301,6 +380,23 @@ class BottleWaterEffectService(
         return item
     }
 
+    private fun resolveHologramText(labelContext: BottleVisualLabelContext): String? {
+        val hologramConfig = bottleConfigProvider().hologram
+        if (!hologramConfig.enabled) {
+            return null
+        }
+        val rendered = hologramConfig.text
+            .replace("%owner_alias%", labelContext.ownerAlias)
+            .replace("%alias%", labelContext.ownerAlias)
+            .replace("%anonymous_code%", labelContext.anonymousCode)
+            .trim()
+        return rendered.takeIf { it.isNotEmpty() }?.let(TextColorizer::color)
+    }
+
+    private fun hologramLocation(headLocation: Location): Location {
+        return headLocation.clone().add(0.0, bottleConfigProvider().hologram.yOffset, 0.0)
+    }
+
     private fun salvageLandingLocation(player: Player): Location {
         val forward = player.location.direction.clone().setY(0.0).normalize().takeIf { it.lengthSquared() > 0.0 }
             ?: Vector(0.0, 0.0, 1.0)
@@ -311,56 +407,19 @@ class BottleWaterEffectService(
             .add(0.0, 0.2, 0.0)
     }
 
-    private fun updateVisualHead(
-        viewer: Player,
-        visualHead: PacketVisualHead,
-        location: Location,
-        tick: Double,
-        downward: Boolean,
-        progress: Double,
-    ) {
-        val yawDegrees = (tick * 18.0) % 360.0
-        val pitchRadians = if (downward) {
-            progress * (PI / 2.0)
-        } else {
-            -(1.0 - progress) * (PI / 2.5)
-        }
-        sendPacket(viewer, createDestroyPacket(visualHead.entityId))
-        sendPacket(viewer, createSpawnPacket(visualHead, location, yawDegrees))
-        sendPacket(viewer, createEquipmentPacket(visualHead.entityId, visualHead.visualItem))
-        sendPacket(viewer, createStaticMetadataPacket(visualHead.entityId))
-        sendPacket(
-            viewer,
-            createPoseMetadataPacket(
-                visualHead.entityId,
-                Math.toDegrees(pitchRadians),
-                yawDegrees,
-            ),
-        )
-    }
-
-    private fun destroyVisualHead(viewer: Player, visualHead: PacketVisualHead) {
-        sendPacket(viewer, createDestroyPacket(visualHead.entityId))
-    }
-
     private fun interpolateArc(start: Location, end: Location, progress: Double, downward: Boolean): Location {
         val vector = start.toVector().multiply(1.0 - progress).add(end.toVector().multiply(progress))
         val arc = sin(progress * PI) * 0.55
         val bias = if (downward) (1.0 - progress) * 0.15 else progress * 0.2
-        return Location(
-            start.world,
-            vector.x,
-            vector.y + arc + bias,
-            vector.z,
-        )
+        return Location(start.world, vector.x, vector.y + arc + bias, vector.z)
     }
 
-    private fun createSpawnPacket(visualHead: PacketVisualHead, location: Location, yawDegrees: Double): PacketContainer {
+    private fun createSpawnPacket(entityId: Int, uuid: UUID, location: Location, yawDegrees: Double): PacketContainer {
         val packet = PacketContainer(PacketType.Play.Server.SPAWN_ENTITY)
         packet.modifier.writeDefaults()
-        packet.integers.write(0, visualHead.entityId)
+        packet.integers.write(0, entityId)
         packet.integers.writeSafely(6, 0)
-        packet.uuiDs.write(0, visualHead.uuid)
+        packet.uuiDs.write(0, uuid)
         packet.entityTypeModifier.write(0, EntityType.ARMOR_STAND)
         packet.doubles.write(0, location.x)
         packet.doubles.write(1, location.y)
@@ -375,14 +434,11 @@ class BottleWaterEffectService(
         val packet = PacketContainer(PacketType.Play.Server.ENTITY_EQUIPMENT)
         packet.modifier.writeDefaults()
         packet.integers.write(0, entityId)
-        packet.slotStackPairLists.write(
-            0,
-            listOf(Pair(EnumWrappers.ItemSlot.HEAD, visualItem)),
-        )
+        packet.slotStackPairLists.write(0, listOf(Pair(EnumWrappers.ItemSlot.HEAD, visualItem)))
         return packet
     }
 
-    private fun createStaticMetadataPacket(entityId: Int): PacketContainer {
+    private fun createHeadStaticMetadataPacket(entityId: Int): PacketContainer {
         val watcher = WrappedDataWatcher()
         watcher.setByte(0, ENTITY_FLAG_INVISIBLE, true)
         watcher.setBoolean(5, true, true)
@@ -390,9 +446,19 @@ class BottleWaterEffectService(
         return createMetadataPacket(entityId, watcher)
     }
 
-    private fun createPoseMetadataPacket(entityId: Int, pitchDegrees: Double, yawDegrees: Double): PacketContainer {
+    private fun createHeadPoseMetadataPacket(entityId: Int, pitchDegrees: Double, yawDegrees: Double): PacketContainer {
         val watcher = WrappedDataWatcher()
         watcher.setVector3F(16, Vector3F(pitchDegrees.toFloat(), yawDegrees.toFloat(), 0.0f), true)
+        return createMetadataPacket(entityId, watcher)
+    }
+
+    private fun createHologramMetadataPacket(entityId: Int, text: String): PacketContainer {
+        val watcher = WrappedDataWatcher()
+        watcher.setByte(0, ENTITY_FLAG_INVISIBLE, true)
+        watcher.setOptionalChatComponent(2, Optional.of(WrappedChatComponent.fromLegacyText(text)), true)
+        watcher.setBoolean(3, true, true)
+        watcher.setBoolean(5, true, true)
+        watcher.setByte(15, ARMOR_STAND_FLAG_MARKER, true)
         return createMetadataPacket(entityId, watcher)
     }
 
@@ -404,13 +470,56 @@ class BottleWaterEffectService(
         return packet
     }
 
-    private fun createDestroyPacket(entityId: Int): PacketContainer {
+    private fun createRelativeMoveLookPacket(
+        head: PacketVisualHead,
+        nextLocation: Location,
+        yawDegrees: Double,
+    ): PacketContainer? {
+        val packet = PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK)
+        packet.modifier.writeDefaults()
+        if (packet.integers.size() <= 0 || packet.shorts.size() < 3) {
+            return null
+        }
+        packet.integers.write(0, head.entityId)
+        packet.shorts.write(0, encodeRelativeDelta(nextLocation.x - head.currentLocation.x))
+        packet.shorts.write(1, encodeRelativeDelta(nextLocation.y - head.currentLocation.y))
+        packet.shorts.write(2, encodeRelativeDelta(nextLocation.z - head.currentLocation.z))
+        if (packet.bytes.size() >= 2) {
+            packet.bytes.write(0, angleToByte(yawDegrees))
+            packet.bytes.write(1, angleToByte(0.0))
+        }
+        if (packet.booleans.size() >= 1) {
+            packet.booleans.write(0, false)
+        }
+        return packet
+    }
+
+    private fun createRelativeMovePacket(
+        hologram: PacketVisualHologram,
+        nextLocation: Location,
+    ): PacketContainer? {
+        val packet = PacketContainer(PacketType.Play.Server.REL_ENTITY_MOVE)
+        packet.modifier.writeDefaults()
+        if (packet.integers.size() <= 0 || packet.shorts.size() < 3) {
+            return null
+        }
+        packet.integers.write(0, hologram.entityId)
+        packet.shorts.write(0, encodeRelativeDelta(nextLocation.x - hologram.currentLocation.x))
+        packet.shorts.write(1, encodeRelativeDelta(nextLocation.y - hologram.currentLocation.y))
+        packet.shorts.write(2, encodeRelativeDelta(nextLocation.z - hologram.currentLocation.z))
+        if (packet.booleans.size() >= 1) {
+            packet.booleans.write(0, false)
+        }
+        return packet
+    }
+
+    private fun createDestroyPacket(entityIds: List<Int>): PacketContainer {
         val packet = PacketContainer(PacketType.Play.Server.ENTITY_DESTROY)
         packet.modifier.writeDefaults()
         if (packet.integerArrays.size() > 0) {
-            packet.integerArrays.write(0, intArrayOf(entityId))
+            packet.integerArrays.write(0, entityIds.toIntArray())
         } else {
-            packet.intLists.write(0, listOf(entityId))
+            packet.intLists.write(0, entityIds)
         }
         return packet
     }
@@ -427,6 +536,13 @@ class BottleWaterEffectService(
 
     private fun angleToByte(angle: Double): Byte {
         return ((angle % 360.0) * 256.0 / 360.0).toInt().toByte()
+    }
+
+    private fun encodeRelativeDelta(delta: Double): Short {
+        return (delta * RELATIVE_MOVE_SCALE)
+            .roundToInt()
+            .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
+            .toShort()
     }
 
     private fun captureWaterCandidates(world: World, origin: Location, config: BottleConfig): List<WaterCandidateSnapshot> {
@@ -490,6 +606,11 @@ class BottleWaterEffectService(
         fun surfaceLocation(world: World): Location = Location(world, x + 0.5, y + 0.5, z + 0.5)
     }
 
+    data class BottleVisualLabelContext(
+        val ownerAlias: String,
+        val anonymousCode: String,
+    )
+
     private data class WaterCandidateSnapshot(
         val x: Int,
         val y: Int,
@@ -498,22 +619,43 @@ class BottleWaterEffectService(
         val distanceSquared: Double,
     )
 
+    private data class PendingPickupTasks(
+        val hoverTask: BukkitTask?,
+        val timeoutTask: BukkitTask?,
+    )
+
     private data class SalvagePickupSession(
         val bottleId: Long,
-        val itemUuid: UUID?,
-        val timeoutTask: org.bukkit.scheduler.BukkitTask?,
+        val visual: PacketVisual?,
+        val hoverTask: BukkitTask?,
+        val timeoutTask: BukkitTask?,
         val onPicked: (Player, Long) -> Unit,
         val onExpired: (Player, Long) -> Unit,
+    )
+
+    private data class PacketVisual(
+        val head: PacketVisualHead,
+        val hologram: PacketVisualHologram?,
     )
 
     private data class PacketVisualHead(
         val entityId: Int,
         val uuid: UUID,
         val visualItem: ItemStack,
+        var currentLocation: Location,
+    )
+
+    private data class PacketVisualHologram(
+        val entityId: Int,
+        val uuid: UUID,
+        var currentLocation: Location,
+        val text: String,
     )
 
     private companion object {
         const val ENTITY_FLAG_INVISIBLE: Byte = 0x20
         const val ARMOR_STAND_FLAG_SMALL_MARKER: Byte = 0x11
+        const val ARMOR_STAND_FLAG_MARKER: Byte = 0x10
+        const val RELATIVE_MOVE_SCALE = 4096.0
     }
 }
