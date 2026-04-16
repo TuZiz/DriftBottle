@@ -1,0 +1,86 @@
+title: "&#0B172A&l全服漂流瓶"
+shape:
+  - "#########"
+  - "#1111111#"
+  - "#1111111#"
+  - "#a d s c#"
+  - "#   i   #"
+  - "##p#b#n##"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "1":
+    template: admin_bottle_entry
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66CCFF&l漂流瓶 #%entry_id%"
+    lore:
+      - "&#CCCCCC状态: %entry_status%"
+      - "&#CCCCCC投放者: &f%entry_owner_alias%"
+      - "&#CCCCCC打捞者: &f%entry_salvager_alias%"
+      - "&#CCCCCC回复数: &f%entry_reply_count%"
+      - "&#CCCCCC最近变动: &f%entry_updated%"
+      - "&#CCCCCC预览: &f%entry_preview%"
+      - ""
+      - "&#66FF99点击查看详情"
+  "a":
+    function: filter_all
+    material: COMPASS
+    name: "&#FFFFFF&l全部"
+    lore:
+      - "&#CCCCCC当前筛选: &f%filter_name%"
+      - "&#66FF99点击查看全部"
+  "d":
+    function: filter_drifting
+    material: GLASS_BOTTLE
+    name: "&#66CCFF&l漂流中"
+    lore:
+      - "&#66FF99点击只看漂流中"
+  "s":
+    function: filter_salvaged
+    material: HEART_OF_THE_SEA
+    name: "&#66FF99&l已打捞"
+    lore:
+      - "&#66FF99点击只看已打捞"
+  "c":
+    function: filter_closed
+    material: GRAY_DYE
+    name: "&#999999&l已封存"
+    lore:
+      - "&#66FF99点击只看已封存"
+  "i":
+    function: list_info
+    material: BOOK
+    name: "&#FFD966&l列表状态"
+    lore:
+      - "&#CCCCCC筛选: &f%filter_name%"
+      - "&#CCCCCC总数: &f%total_items%"
+      - "&#CCCCCC页码: &f%page%/%total_pages%"
+  "p":
+    function: prev_page
+    material: ARROW
+    name: "&#CCCCCC上一页"
+    lore:
+      - "&#66FF99点击查看上一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无上一页"
+    disabled-lore:
+      - "&#777777当前已经是第一页"
+  "b":
+    function: back
+    material: BARRIER
+    name: "&#FF6666返回后台"
+    lore:
+      - "&#66FF99点击返回"
+  "n":
+    function: next_page
+    material: ARROW
+    name: "&#CCCCCC下一页"
+    lore:
+      - "&#66FF99点击查看下一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无下一页"
+    disabled-lore:
+      - "&#777777当前已经是最后一页"

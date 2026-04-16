@@ -1,0 +1,60 @@
+title: "&#0B172A&l我的漂流瓶"
+shape:
+  - "#########"
+  - "#1111111#"
+  - "#1111111#"
+  - "#1111111#"
+  - "#   i   #"
+  - "##p#b#n##"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "1":
+    template: bottle_entry
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66CCFF&l瓶子 #%entry_name%"
+    lore:
+      - "&#CCCCCC状态: %entry_status%"
+      - "%entry_partner%"
+      - "&#CCCCCC留言预览: &f%entry_preview%"
+      - "&#CCCCCC回复数: &f%entry_reply_count%"
+      - "&#CCCCCC最近变动: &f%entry_updated%"
+      - ""
+      - "&#66FF99点击查看详情"
+  "i":
+    function: list_info
+    material: BOOK
+    name: "&#FFD966&l列表状态"
+    lore:
+      - "&#CCCCCC总数: &f%total_items%"
+      - "&#CCCCCC页码: &f%page%/%total_pages%"
+      - "&#CCCCCC未关闭瓶子: &f%open_bottle_count%"
+  "p":
+    function: prev_page
+    material: ARROW
+    name: "&#CCCCCC上一页"
+    lore:
+      - "&#66FF99点击查看上一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无上一页"
+    disabled-lore:
+      - "&#777777已经是第一页了"
+  "b":
+    function: back
+    material: BARRIER
+    name: "&#FF6666返回主菜单"
+    lore:
+      - "&#66FF99点击返回"
+  "n":
+    function: next_page
+    material: ARROW
+    name: "&#CCCCCC下一页"
+    lore:
+      - "&#66FF99点击查看下一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无下一页"
+    disabled-lore:
+      - "&#777777已经是最后一页了"

@@ -1,0 +1,77 @@
+title: "&#0B172A&l后台瓶子详情"
+shape:
+  - "#########"
+  - "# m p r #"
+  - "# ccccc #"
+  - "#2222222#"
+  - "# f d b #"
+  - "#########"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "m":
+    function: bottle_meta
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66CCFF&l漂流瓶 #%bottle_id%"
+    lore:
+      - "&#CCCCCC状态: %bottle_status%"
+      - "&#CCCCCC创建: &f%created_time%"
+      - "&#CCCCCC打捞: &f%salvaged_time%"
+      - "&#CCCCCC更新: &f%updated_time%"
+      - "&#CCCCCC回复数: &f%reply_count%"
+  "p":
+    function: participants
+    material: PLAYER_HEAD
+    name: "&#FFD966&l参与者"
+    lore:
+      - "&#CCCCCC投放者: &f%owner_alias%"
+      - "&#999999%owner_uuid%"
+      - ""
+      - "&#CCCCCC打捞者: &f%salvager_alias%"
+      - "&#999999%salvager_uuid%"
+  "r":
+    function: refresh
+    material: LIME_DYE
+    name: "&#66FF99&l刷新"
+    lore:
+      - "&#66FF99点击刷新详情"
+  "c":
+    function: bottle_content
+    material: WRITABLE_BOOK
+    name: "&#FFFFFF&l瓶子内容"
+    lore:
+      - "&#CCCCCC%content_line_1%"
+      - "&#CCCCCC%content_line_2%"
+      - "&#CCCCCC%content_line_3%"
+      - "&#CCCCCC%content_line_4%"
+  "2":
+    template: admin_reply_entry
+    material: PAPER
+    name: "&#FFB366&l%reply_name%"
+    lore:
+      - "&#CCCCCC%reply_time%"
+      - "&#999999%reply_uuid%"
+      - "&#FFFFFF%reply_content%"
+  "f":
+    function: force_close
+    material: IRON_DOOR
+    name: "&#FFB366&l强制封存"
+    lore:
+      - "&#CCCCCC让这个瓶子停止继续回信"
+      - "&#66FF99点击执行"
+  "d":
+    function: delete_bottle
+    material: REDSTONE_BLOCK
+    name: "&#FF6666&l删除瓶子"
+    lore:
+      - "&#CCCCCC删除瓶子及全部回信"
+      - "&#FF6666会进入二次确认"
+  "b":
+    function: back
+    material: BARRIER
+    name: "&#CCCCCC返回列表"
+    lore:
+      - "&#66FF99点击返回"

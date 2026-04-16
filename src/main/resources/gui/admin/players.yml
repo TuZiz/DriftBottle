@@ -1,0 +1,60 @@
+title: "&#0B172A&l玩家统计"
+shape:
+  - "#########"
+  - "#1111111#"
+  - "#1111111#"
+  - "#       #"
+  - "#   i   #"
+  - "##p#b#n##"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "1":
+    template: admin_player_entry
+    material: PLAYER_HEAD
+    head: true
+    name: "&#FFE066&l%entry_player_name%"
+    lore:
+      - "&#999999%entry_player_uuid%"
+      - "&#CCCCCC投放: &f%entry_thrown_count%"
+      - "&#CCCCCC未关闭: &f%entry_open_bottle_count%"
+      - "&#CCCCCC漂流中: &f%entry_drifting_count%"
+      - "&#CCCCCC打捞: &f%entry_salvaged_count%"
+      - "&#CCCCCC发出回信: &f%entry_sent_reply_count%"
+      - "&#CCCCCC收到回信: &f%entry_received_reply_count%"
+      - "&#CCCCCC最近记录: &f%entry_updated%"
+  "i":
+    function: list_info
+    material: BOOK
+    name: "&#FFD966&l玩家列表"
+    lore:
+      - "&#CCCCCC总数: &f%total_items%"
+      - "&#CCCCCC页码: &f%page%/%total_pages%"
+  "p":
+    function: prev_page
+    material: ARROW
+    name: "&#CCCCCC上一页"
+    lore:
+      - "&#66FF99点击查看上一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无上一页"
+    disabled-lore:
+      - "&#777777当前已经是第一页"
+  "b":
+    function: back
+    material: BARRIER
+    name: "&#FF6666返回后台"
+    lore:
+      - "&#66FF99点击返回"
+  "n":
+    function: next_page
+    material: ARROW
+    name: "&#CCCCCC下一页"
+    lore:
+      - "&#66FF99点击查看下一页"
+    disabled-material: LIGHT_GRAY_STAINED_GLASS_PANE
+    disabled-name: "&#999999暂无下一页"
+    disabled-lore:
+      - "&#777777当前已经是最后一页"

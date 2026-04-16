@@ -1,0 +1,26 @@
+title: "&#FF6666&l漂流瓶黑名单"
+shape:
+  - "#########"
+  - "#1111111#"
+  - "#1111111#"
+  - "#1111111#"
+  - "####b####"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "b":
+    function: back
+    material: ARROW
+    name: "&#CCCCCC返回"
+    lore:
+      - "&#66FF99点击返回主菜单"
+  "1":
+    template: blacklist_entry
+    material: PLAYER_HEAD
+    name: "&#FF6666%target_name%"
+    lore:
+      - "&#CCCCCC不会再打捞来自这个玩家的瓶子"
+      - ""
+      - "&#66FF99点击解除"

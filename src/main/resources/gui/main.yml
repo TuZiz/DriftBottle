@@ -1,0 +1,81 @@
+title: "&#0B172A&l漂流瓶"
+shape:
+  - "#########"
+  - "# a b c #"
+  - "# d e f #"
+  - "#   g   #"
+  - "#########"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "a":
+    function: throw_bottle
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66CCFF&l投放漂流瓶"
+    lore:
+      - "&#CCCCCC写一段匿名留言丢进海里"
+      - "&#CCCCCC未关闭瓶子: &f%open_bottle_count%/%max_active_bottles%"
+      - "&#CCCCCC投放花费: &f%throw_cost%"
+      - ""
+      - "&#66FF99点击开始输入"
+  "b":
+    function: salvage_bottle
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66FFCC&l随机打捞"
+    lore:
+      - "&#CCCCCC随机捞起一只正在漂流的瓶子"
+      - "&#CCCCCC你仍在漂流中的瓶子: &f%drifting_count%"
+      - "&#CCCCCC成功打捞奖励: &f%salvage_reward%"
+      - ""
+      - "&#66FF99点击立刻打捞"
+  "c":
+    function: my_bottles
+    material: CHEST
+    name: "&#FFD966&l我的瓶子"
+    lore:
+      - "&#CCCCCC你投放过的全部漂流瓶"
+      - "&#CCCCCC累计投放: &f%thrown_count%"
+      - "&#CCCCCC收到回复: &f%received_reply_count%"
+      - ""
+      - "&#66FF99点击查看"
+  "d":
+    function: inbox
+    material: WRITABLE_BOOK
+    name: "&#FFB366&l我打捞的瓶子"
+    lore:
+      - "&#CCCCCC查看你已经打捞到的瓶子"
+      - "&#CCCCCC累计打捞: &f%salvaged_count%"
+      - "&#CCCCCC发出回复: &f%sent_reply_count%"
+      - ""
+      - "&#66FF99点击查看"
+  "e":
+    function: blacklist
+    material: BARRIER
+    name: "&#FF6666&l黑名单"
+    lore:
+      - "&#CCCCCC不再打捞来自这些玩家的瓶子"
+      - ""
+      - "&#66FF99点击管理"
+  "f":
+    function: profile
+    material: PLAYER_HEAD
+    head: true
+    name: "&#FFE066%player_name%"
+    lore:
+      - "&#99CCFF当前余额: &f%balance%"
+      - "&#99CCFF未关闭瓶子: &f%open_bottle_count%"
+      - ""
+      - "&#66FF99点击查看详情"
+  "g":
+    function: status
+    material: PAPER
+    name: "&#A4C2F4&l今日状态"
+    lore:
+      - "&#CCCCCC投放: &f%thrown_count%"
+      - "&#CCCCCC打捞: &f%salvaged_count%"
+      - "&#CCCCCC回复发出: &f%sent_reply_count%"
+      - "&#CCCCCC回复收到: &f%received_reply_count%"

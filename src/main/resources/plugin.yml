@@ -1,0 +1,28 @@
+name: DriftBottle
+version: '$version'
+
+main: ym.driftBottle.DriftBottle
+api-version: '1.18'
+
+authors: [ ymxc ]
+softdepend: [ Vault ]
+
+commands:
+  driftbottle:
+    description: Open the DriftBottle menu or execute admin subcommands
+    usage: /<command> [throw|salvage|my|inbox|open <id>|blacklist|profile|admin|reload]
+    aliases: [ dbottle, bottle ]
+
+permissions:
+  driftbottle.admin:
+    description: Allows all DriftBottle admin actions
+    default: op
+    children:
+      driftbottle.admin.view: true
+      driftbottle.admin.manage: true
+  driftbottle.admin.view:
+    description: Allows opening the DriftBottle admin view
+    default: op
+  driftbottle.admin.manage:
+    description: Allows force closing and deleting bottles in the admin view
+    default: op

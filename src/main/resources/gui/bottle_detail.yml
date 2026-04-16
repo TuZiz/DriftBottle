@@ -1,0 +1,100 @@
+title: "&#0B172A&l瓶子详情"
+shape:
+  - "#########"
+  - "#a b c d#"
+  - "#   e   #"
+  - "#1111111#"
+  - "#  fgh  #"
+  - "###i#j###"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "a":
+    function: bottle_meta
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#66CCFF&l瓶子 #%bottle_name%"
+    lore:
+      - "&#CCCCCC状态: %bottle_status%"
+      - "&#CCCCCC投放时间: &f%bottle_time%"
+      - "&#CCCCCC当前回复数: &f%reply_count%"
+  "b":
+    function: counterpart
+    material: NAME_TAG
+    name: "&#FFD966&l对方标识"
+    lore:
+      - "%counterpart_line_1%"
+      - "%counterpart_line_2%"
+  "c":
+    function: flow_info
+    material: CLOCK
+    name: "&#A4C2F4&l当前流向"
+    lore:
+      - "%flow_line_1%"
+      - "%flow_line_2%"
+      - "%flow_line_3%"
+  "d":
+    function: refresh
+    material: COMPASS
+    name: "&#66FF99&l刷新"
+    lore:
+      - "&#CCCCCC重新读取这个瓶子的最新状态"
+      - ""
+      - "&#66FF99点击刷新"
+  "e":
+    function: bottle_content
+    material: WRITABLE_BOOK
+    name: "&#FFFFFF&l瓶中留言"
+    lore:
+      - "&#CCCCCC%content_line_1%"
+      - "&#CCCCCC%content_line_2%"
+      - "&#CCCCCC%content_line_3%"
+      - "&#CCCCCC%content_line_4%"
+  "1":
+    template: reply_entry
+    material: PAPER
+    name: "&#FFB366&l%reply_name%"
+    lore:
+      - "&#CCCCCC%reply_time%"
+      - "&#FFFFFF%reply_content%"
+  "f":
+    function: reply_action
+    material: FEATHER
+    name: "%reply_button_name%"
+    lore:
+      - "%reply_line_1%"
+      - "%reply_line_2%"
+      - ""
+      - "%reply_hint%"
+  "g":
+    function: blacklist_action
+    material: BARRIER
+    name: "%blacklist_name%"
+    lore:
+      - "%blacklist_line_1%"
+      - "%blacklist_line_2%"
+      - ""
+      - "%blacklist_hint%"
+  "h":
+    function: close_action
+    material: HOPPER
+    name: "%close_name%"
+    lore:
+      - "%close_line_1%"
+      - "%close_line_2%"
+      - ""
+      - "%close_hint%"
+  "i":
+    function: back
+    material: ARROW
+    name: "&#CCCCCC返回列表"
+    lore:
+      - "&#66FF99点击返回"
+  "j":
+    function: home
+    material: SUNFLOWER
+    name: "&#FFE066回到主菜单"
+    lore:
+      - "&#66FF99点击返回主菜单"

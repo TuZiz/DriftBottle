@@ -1,0 +1,77 @@
+# 当前使用的语言文件名称，可选 zh_cn 或 en_us。
+language: zh_cn
+
+# 数据库配置节点，负责保存漂流瓶、回信、黑名单和经济流水。
+database:
+  # 数据库类型，可选 SQLITE 或 MYSQL。
+  type: SQLITE
+  # SQLite 数据库文件名，文件会保存在插件目录下。
+  sqlite-file: driftbottle.db
+  # MySQL 连接配置，只有 type 设置为 MYSQL 时才会生效。
+  mysql:
+    # MySQL 主机地址。
+    host: 127.0.0.1
+    # MySQL 端口号。
+    port: 3306
+    # MySQL 数据库名称。
+    database: driftbottle
+    # MySQL 登录用户名。
+    username: root
+    # MySQL 登录密码，留空时请保持一对单引号。
+    password: ''
+    # MySQL 连接附加参数，通常不需要改动。
+    parameters: useSSL=false&characterEncoding=utf8&serverTimezone=UTC
+
+# 聊天输入限制配置，影响投放漂流瓶和发送回信。
+chat:
+  # 同一玩家的聊天输入冷却时间，单位为毫秒。
+  message-cooldown-millis: 3000
+  # 单条漂流瓶留言或回信允许的最大字符数。
+  max-message-length: 120
+  # 违禁词列表，输入命中后会被系统拦截。
+  banned-words:
+    # 示例违禁词，可按服务器需要自行修改。
+    - sb
+    # 示例违禁词，可按服务器需要自行修改。
+    - nmsl
+
+# 漂流瓶核心玩法配置。
+bottle:
+  # 投放漂流瓶时通过 Vault 经济扣除的金额。
+  throw-cost: 5.0
+  # 随机打捞成功后通过 Vault 经济发放的奖励金额。
+  salvage-reward: 3.0
+  # 投放漂流瓶的冷却时间，单位为秒。
+  throw-cooldown-seconds: 10
+  # 随机打捞的冷却时间，单位为秒。
+  salvage-cooldown-seconds: 5
+  # 每名玩家允许同时存在的未封存漂流瓶上限。
+  max-active-bottles-per-player: 5
+  # 单个漂流瓶会话允许的最大回信轮次。
+  max-thread-replies: 6
+  # 是否启用投放、打捞、回信时的音效提示。
+  sounds-enabled: true
+  # 投放漂流瓶时播放的 Bukkit 音效名称。
+  throw-sound: ITEM_BOTTLE_FILL
+  # 打捞成功时播放的 Bukkit 音效名称。
+  salvage-sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  # 回信发送成功时播放的 Bukkit 音效名称。
+  reply-sound: BLOCK_NOTE_BLOCK_CHIME
+  # 玩家附近搜索可用水体的半径，单位为方块。
+  water-search-radius: 5
+  # 允许投放/打捞视觉效果的最小连续水深，4 代表必须超过 3 格深。
+  water-min-depth: 4
+  # 漂流瓶在起点悬停旋转的时长，单位为 tick；数值越大，起手动作越长。
+  visual-hover-ticks: 24
+  # 漂流瓶从起点飞到终点的动画时长，单位为 tick；数值越大，飞行动画越慢越完整。
+  visual-flight-ticks: 36
+  # 打捞瓶子飞到玩家身边后，最多等待玩家拾取多久，单位为 tick。
+  salvage-pickup-wait-ticks: 200
+  # 投放/打捞视觉效果使用的物品配置。
+  visual-item:
+    # 视觉漂流瓶使用的材质，通常保持 PLAYER_HEAD；也可以改成别的可穿戴物品材质。
+    material: PLAYER_HEAD
+    # 当材质为 PLAYER_HEAD 时，可填写玩家名来使用对应皮肤；留空则不使用玩家皮肤。
+    head-owner: ''
+    # 当材质为 PLAYER_HEAD 时，也可直接填写 Base64 头颅材质；优先级高于 head-owner；当前默认值为水瓶样式。
+    head-texture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0='

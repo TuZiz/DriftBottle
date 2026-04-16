@@ -1,0 +1,58 @@
+title: "&#0B172A&l漂流瓶档案"
+shape:
+  - "#########"
+  - "#   a   #"
+  - "# b c d #"
+  - "#   e   #"
+  - "####f####"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "a":
+    function: profile
+    material: PLAYER_HEAD
+    head: true
+    name: "&#FFE066%player_name%"
+    lore:
+      - "&#99CCFF当前余额: &f%balance%"
+      - "&#99CCFF未关闭瓶子: &f%open_bottle_count%/%max_active_bottles%"
+  "b":
+    function: summary
+    material: BOOK
+    name: "&#66CCFF&l投放统计"
+    lore:
+      - "&#CCCCCC累计投放: &f%thrown_count%"
+      - "&#CCCCCC仍在海上: &f%drifting_count%"
+      - "&#CCCCCC未关闭: &f%open_bottle_count%"
+  "c":
+    function: economy
+    material: GOLD_INGOT
+    name: "&#FFD966&l经济设置"
+    lore:
+      - "&#CCCCCC投放花费: &f%throw_cost%"
+      - "&#CCCCCC打捞奖励: &f%salvage_reward%"
+      - "&#CCCCCC当前余额: &f%balance%"
+  "d":
+    function: replies
+    material: FEATHER
+    name: "&#FFB366&l互动统计"
+    lore:
+      - "&#CCCCCC累计打捞: &f%salvaged_count%"
+      - "&#CCCCCC发出回复: &f%sent_reply_count%"
+      - "&#CCCCCC收到回复: &f%received_reply_count%"
+  "e":
+    function: overview
+    material: CHEST
+    name: "&#66FFCC&l漂流瓶总览"
+    lore:
+      - "&#CCCCCC投放花费: &f%throw_cost%"
+      - "&#CCCCCC打捞奖励: &f%salvage_reward%"
+      - "&#CCCCCC未关闭上限: &f%max_active_bottles%"
+  "f":
+    function: back
+    material: ARROW
+    name: "&#CCCCCC返回"
+    lore:
+      - "&#66FF99点击返回"

@@ -1,0 +1,48 @@
+title: "&#0B172A&l漂流瓶后台"
+shape:
+  - "#########"
+  - "# a s b #"
+  - "#       #"
+  - "#   x   #"
+  - "#########"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "a":
+    function: all_bottles
+    material: CHEST
+    name: "&#66CCFF&l全服漂流瓶"
+    lore:
+      - "&#CCCCCC总数: &f%total_bottles%"
+      - "&#CCCCCC漂流中: &f%drifting_bottles%"
+      - "&#CCCCCC已打捞: &f%salvaged_bottles%"
+      - "&#CCCCCC已封存: &f%closed_bottles%"
+      - ""
+      - "&#66FF99点击查看列表"
+  "s":
+    function: summary
+    material: PAPER
+    name: "&#FFD966&l系统概览"
+    lore:
+      - "&#CCCCCC总漂流瓶: &f%total_bottles%"
+      - "&#CCCCCC总回信数: &f%total_replies%"
+      - "&#CCCCCC记录玩家: &f%total_players%"
+      - ""
+      - "&#999999后台数据来自当前数据库"
+  "b":
+    function: player_stats
+    material: PLAYER_HEAD
+    name: "&#66FFCC&l玩家统计"
+    lore:
+      - "&#CCCCCC记录玩家: &f%total_players%"
+      - "&#CCCCCC查看玩家投放、打捞和回信统计"
+      - ""
+      - "&#66FF99点击查看"
+  "x":
+    function: back
+    material: BARRIER
+    name: "&#FF6666返回玩家菜单"
+    lore:
+      - "&#66FF99点击返回"

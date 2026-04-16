@@ -1,0 +1,35 @@
+title: "&#4A0B0B&l确认删除"
+shape:
+  - "#########"
+  - "#   m   #"
+  - "#       #"
+  - "# y n   #"
+  - "#########"
+key:
+  "#":
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+    lore: []
+  "m":
+    function: bottle_meta
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU4ZTNjNGQ0OTI2NzM5NmJhMjFjYWI1NmQ5MjJlOWVkYWU5NDQ0YTY4YTYyNDA5MTNmOWQxZTljZDlmNWMxMiJ9fX0="
+    name: "&#FFB366&l漂流瓶 #%bottle_id%"
+    lore:
+      - "&#CCCCCC状态: %bottle_status%"
+      - "&#CCCCCC投放者: &f%owner_alias%"
+      - "&#CCCCCC回复数: &f%reply_count%"
+      - "&#FF6666删除会同时删除全部回信"
+  "y":
+    function: confirm_delete
+    material: REDSTONE_BLOCK
+    name: "&#FF6666&l确认删除"
+    lore:
+      - "&#FF6666这个操作不可撤销"
+      - "&#66FF99点击确认"
+  "n":
+    function: cancel
+    material: EMERALD_BLOCK
+    name: "&#66FF99&l取消"
+    lore:
+      - "&#CCCCCC返回瓶子详情"
