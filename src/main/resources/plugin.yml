@@ -5,6 +5,7 @@ main: ym.driftBottle.DriftBottle
 api-version: '1.18'
 
 authors: [ ymxc ]
+depend: [ ProtocolLib ]
 softdepend: [ Vault ]
 
 commands:
